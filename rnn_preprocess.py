@@ -52,15 +52,19 @@ def tokenize(path):
 raw_text = load_doc('data/shakespeare.txt').lower()
 
 tokens = raw_text.split()
-# remove numbers
-tokens = [item for item in tokens if not item.isdigit()]
 raw_text = ' '.join(tokens)
 length = 40
 sequences = list()
-for i in range(length, len(raw_text)):
-	seq = raw_text[i-length:i+1]
-	sequences.append(seq)
+i = length
+while i < len(raw_text):
+    if raw_text[i].isdigit():
+        i += (length + 1)
+        if i >= len(raw_text):
+            break
+    seq = raw_text[i-length:i+1]
+    sequences.append(seq)
+    i += 1
 
-out_filename = 'char_sequences.txt'
+out_filename = 'char_sequences2.txt'
 save_doc(sequences, out_filename)
 
