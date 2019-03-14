@@ -49,7 +49,7 @@ def tokenize(path):
         # Convert each word to lowercase and return the result
         return list(map(lambda word: word.lower(), alphanumeric_words))
 
-raw_text = load_doc('data/shakespeare.txt')
+raw_text = load_doc('data/shakespeare.txt').lower()
 
 tokens = raw_text.split()
 # remove numbers
