@@ -10,7 +10,7 @@ def save_doc(lines, filename):
 	file.write(data)
 	file.close()
 
-raw_text = load_doc('data/shakespeare.txt')
+raw_text = load_doc('data/shakespeare.txt').lower()
 
 tokens = raw_text.split()
 # remove numbers
