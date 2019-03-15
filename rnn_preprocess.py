@@ -52,7 +52,7 @@ def tokenize(path):
 raw_text = load_doc('data/shakespeare.txt').lower()
 
 tokens = raw_text.split()
-raw_text = ' '.join(tokens).replace('!', '').replace('?', '').replace(';', '').replace(',', '').replace(':', '').replace('.', '')
+raw_text = ' '.join(tokens).replace(')','').replace('(', '').replace('!', '').replace('?', '').replace(';', '').replace(',', '').replace(':', '').replace('.', '')
 length = 40
 sequences = list()
 i = length
