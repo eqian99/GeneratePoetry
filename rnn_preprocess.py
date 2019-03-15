@@ -25,10 +25,10 @@ def load_word_list(path):
         alphanumeric_words = map(lambda word: ''.join(char for char in word if char.isalnum()), new_text)
         # Filter out words that are now empty (e.g. strings that only contained non-alphanumeric chars)
         alphanumeric_words = filter(lambda word: len(word) > 0, alphanumeric_words)
-        
+
         # Convert each word to lowercase and return the result
         return list(map(lambda word: word.lower(), alphanumeric_words))
-    
+
 def tokenize(path):
     """
     Loads a list of the words from the file at path <path>, removing all
@@ -70,4 +70,3 @@ while i < len(raw_text):
 
 out_filename = 'char_sequences2.txt'
 save_doc(sequences, out_filename)
-
