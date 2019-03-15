@@ -84,8 +84,8 @@ def states_to_wordclouds(hmm, obs_map, max_words=50, show=True):
 ####################
 
 def parse_observations(text):
-    # Convert text to dataset.
-    lines = [line.split() for line in text.split('\n') if line.split()]
+    # Convert text to dataset by splitting each sonnet.
+    lines = [line.split() for line in text.split('\n\n') if line.split()]
 
     obs_counter = 0
     obs = []
@@ -95,7 +95,9 @@ def parse_observations(text):
         obs_elem = []
         
         for word in line:
-            word = re.sub(r'[^\w]', '', word).lower()
+            if word.isdigit():
+                continue
+            word = word.replace(')','').replace('(', '').replace('!', '').replace('?', '').replace(';', '').replace(',', '').replace(':', '').replace('.', '').lower()
             if word not in obs_map:
                 # Add unique words to the observations map.
                 obs_map[word] = obs_counter
@@ -105,7 +107,8 @@ def parse_observations(text):
             obs_elem.append(obs_map[word])
         
         # Add the encoded sequence.
-        obs.append(obs_elem)
+        if (len(obs_elem) > 0):
+            obs.append(obs_elem)
 
     return obs, obs_map
 
