@@ -61,6 +61,9 @@ while i < len(raw_text):
         i += (length + 1)
         if i >= len(raw_text):
             break
+    if raw_text[i-length].isdigit():
+        i += 2
+        continue
     seq = raw_text[i-length:i+1]
     sequences.append(seq)
     i += 1
