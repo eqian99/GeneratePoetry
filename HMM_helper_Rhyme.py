@@ -51,7 +51,7 @@ def text_to_wordcloud(text, max_words=50, title='', show=True):
 
     return wordcloud
 
-def states_to_wordclouds(hmm, obs_map, max_words=50, show=True):
+def states_to_wordclouds(hmm, obs_map, Rhyme_map, Rhyme_counter, max_words=50, show=True):
     # Initialize.
     M = 100000
     n_states = len(hmm.A)
@@ -59,7 +59,7 @@ def states_to_wordclouds(hmm, obs_map, max_words=50, show=True):
     wordclouds = []
 
     # Generate a large emission.
-    emission, states = hmm.generate_emission(M)
+    emission, states = hmm.generate_emission(M, Rhyme_map, Rhyme_counter)
 
     # For each state, get a list of observations that have been emitted
     # from that state.
@@ -83,31 +83,32 @@ def states_to_wordclouds(hmm, obs_map, max_words=50, show=True):
 # HMM FUNCTIONS
 ####################
 
-def create_rhymes(text):
+def create_rhymes(text, obs_map):
     # Convert text to dataset.
     lines = [line.split() for line in text.split('\n') if line.split()]
 
     i_counter = 0
     s_counter = 0
     Rhyme_counter = 0
-    kst = []
-    rhyme_list1 = [1, 2, 5, 6, 9, 10, 13]
-    rhyme_list2 = [3, 4, 7, 8, 11, 12, 14]
+    lst = []
+    rhyme_list1 = [0, 1, 4, 5, 8, 9, 12]
+    rhyme_list2 = [2, 3, 6, 7, 10, 11, 13]
     Rhyme_map = {} # Map numbers to pairs
 
     for line in lines:
         mod = i_counter % 17
         if (mod != 0 and mod != 15 and mod != 16):
-            lst.append(line[-1])
+            word = line[-1]
+            word = re.sub(r'[^\w]', '', word).lower()
+            lst.append(word)
         elif (mod == 16):
             for i in range(len(rhyme_list1)):
-                Rhyme_map[lst_counter] = (lst[rhyme_list1[i]],
-                    lst[rhyme_list2[i]])
+                Rhyme_map[Rhyme_counter] = (obs_map[lst[rhyme_list1[i]]], obs_map[lst[rhyme_list2[i]]])
                 Rhyme_counter += 1
             s_counter += 1
         i_counter += 1
         # Don't feel like dealing with the bad sonnets yet TODO
-        if (i_counter = 80 * 17):
+        if (i_counter == 80 * 17):
             break
     return Rhyme_counter, Rhyme_map
 
@@ -145,15 +146,15 @@ def obs_map_reverser(obs_map):
 
     return obs_map_r
 
-def sample_sentence(hmm, obs_map, n_words=100):
+def sample_sentence(hmm, obs_map, Rhyme_map, Rhyme_counter, n_words=100, map_index=-1, map_part=-1, punc=','):
     # Get reverse map.
     obs_map_r = obs_map_reverser(obs_map)
 
     # Sample and convert sentence.
-    emission, states = hmm.generate_emission(n_words)
+    emission, states = hmm.generate_emission(n_words, Rhyme_map, Rhyme_counter, map_index, map_part)
     sentence = [obs_map_r[i] for i in emission]
 
-    return ' '.join(sentence).capitalize() + '...'
+    return ' '.join(sentence).capitalize() + punc
 
 
 ####################
@@ -181,7 +182,7 @@ def visualize_sparsities(hmm, O_max_cols=50, O_vmax=0.1):
 # HMM ANIMATION FUNCTIONS
 ####################
 
-def animate_emission(hmm, obs_map, M=8, height=12, width=12, delay=1):
+def animate_emission(hmm, obs_map, Rhyme_map, Rhyme_counter, M=8, height=12, width=12, delay=1):
     # Parameters.
     lim = 1200
     text_x_offset = 40
@@ -198,7 +199,7 @@ def animate_emission(hmm, obs_map, M=8, height=12, width=12, delay=1):
     # Initialize.
     n_states = len(hmm.A)
     obs_map_r = obs_map_reverser(obs_map)
-    wordclouds = states_to_wordclouds(hmm, obs_map, max_words=20, show=False)
+    wordclouds = states_to_wordclouds(hmm, obs_map, Rhyme_map, Rhyme_counter, max_words=20, show=False)
 
     # Initialize plot.
     fig, ax = plt.subplots()
@@ -251,7 +252,7 @@ def animate_emission(hmm, obs_map, M=8, height=12, width=12, delay=1):
             row.append(arrow)
         arrows.append(row)
 
-    emission, states = hmm.generate_emission(M)
+    emission, states = hmm.generate_emission(M, Rhyme_map, Rhyme_counter)
 
     def animate(i):
         if i >= delay:

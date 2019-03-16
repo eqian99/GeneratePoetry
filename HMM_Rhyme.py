@@ -81,8 +81,6 @@ class HiddenMarkovModel:
         self.A = A
         self.O = O
         self.A_start = [1. / self.L for _ in range(self.L)]
-        self.Rhyme_map = {}
-        self.Rhyme_counter = 0
 
 
     def viterbi(self, x):
@@ -283,7 +281,7 @@ class HiddenMarkovModel:
         self.O = O
 
 
-    def unsupervised_learning(self, X, N_iters, Rhyme_map, Rhyme_counter):
+    def unsupervised_learning(self, X, N_iters):
         '''
         Trains the HMM using the Baum-Welch algorithm on an unlabeled
         datset X. Note that this method does not return anything, but
@@ -299,8 +297,6 @@ class HiddenMarkovModel:
 
         L = self.L
         D = self.D
-        self.Rhyme_map = Rhyme_map
-        self.Rhyme_counter = Rhyme_counter
 
         for n in range(N_iters):
             An = [[0] * (L) for i in range(L)]
@@ -360,7 +356,7 @@ class HiddenMarkovModel:
                 for b in range(D):
                     self.O[a][b] = (np.array(On[a][b]) / Od[a]).tolist()
 
-    def generate_emission(self, M):
+    def generate_emission(self, M, Rhyme_map, Rhyme_counter, map_index = -1, map_part = -1):
         '''
         Generates an emission of length M, assuming that the starting state
         is chosen uniformly at random.
@@ -377,38 +373,47 @@ class HiddenMarkovModel:
         emission = []
         states = []
         rhymes = np.zeros(14)
-        rhyme_list = np.random.randint(self.Rhyme_counter, size=7)
+        rhyme_list = np.random.randint(Rhyme_counter, size=7)
         rhyme_indices = [1, 2, 8, 9, 3, 4, 10, 11, 5, 6, 12, 13, 7, 14]
 
         L = self.L
         D = self.D
         for j in range(len(rhyme_indices)):
             for i in range(len(rhyme_list)):
-                part1, part2 = self.Rhyme_map[rhyme_list[i]]
+                part1, part2 = Rhyme_map[rhyme_list[i]]
                 if (i == rhyme_indices[j]):
                     rhymes[j] = part1
                 elif (i == rhyme_indices[j] - 7):
                     rhymes[j] = part2
-                    
         for i in range(M):
             if (i == 0):
-                # TODO Generate the 14 rhyming words at the end
-                # TODO Initialize state to most likely for chosen word
-                state = np.random.randint(L)
+                if (map_index == -1):
+                    emission_choice = np.random.choice(list(range(D)))
+                else:
+                    part1, part2 = Rhyme_map[map_index]
+                    if (map_part == 0):
+                        emission_choice = part1
+                    else:
+                        emission_choice = part2
+                emission.append(emission_choice)
+                probs = np.array(self.O)[:, emission_choice]
+                probs /= sum(probs)
+                state = np.random.choice(list(range(L)), p=probs)
                 states.append(state)
                 probs = self.O[state]
-                # TODO Don't need to choose an emission here.  Already chosen
-                emission_choice = np.random.choice(list(range(D)), p=probs)
-                emission.append(emission_choice)
             else:
-                probs = self.A[:, states[-1]]
+                probs = np.array(self.A)[:, states[-1]]
+                probs /= sum(probs)
                 state = np.random.choice(list(range(L)), p=probs)
                 states.append(state)
                 probs = self.O[state]
                 emission_choice = np.random.choice(list(range(D)), p=probs)
                 emission.append(emission_choice)
 
-        return emission.reverse(), states.reverse()
+        emission.reverse()
+        states.reverse()
+
+        return emission, states
 
 
     def probability_alphas(self, x):

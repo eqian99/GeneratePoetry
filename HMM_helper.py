@@ -93,7 +93,7 @@ def parse_observations(text):
 
     for line in lines:
         obs_elem = []
-        
+
         for word in line:
             if word.isdigit():
                 continue
@@ -102,14 +102,64 @@ def parse_observations(text):
                 # Add unique words to the observations map.
                 obs_map[word] = obs_counter
                 obs_counter += 1
-            
+
             # Add the encoded word.
             obs_elem.append(obs_map[word])
-        
+
         # Add the encoded sequence.
         if (len(obs_elem) > 0):
             obs.append(obs_elem)
 
+    return obs, obs_map
+
+def parse_observations2(text1, text2):
+    # Convert text to dataset by splitting each sonnet.
+    lines = [line.split() for line in text1.split('\n\n') if line.split()]
+
+    obs_counter = 0
+    obs = []
+    obs_map = {}
+
+    for line in lines:
+        obs_elem = []
+
+        for word in line:
+            if word.isdigit():
+                continue
+            word = word.replace(')','').replace('(', '').replace('!', '').replace('?', '').replace(';', '').replace(',', '').replace(':', '').replace('.', '').lower()
+            if word not in obs_map:
+                # Add unique words to the observations map.
+                obs_map[word] = obs_counter
+                obs_counter += 1
+
+            # Add the encoded word.
+            obs_elem.append(obs_map[word])
+
+        # Add the encoded sequence.
+        if (len(obs_elem) > 0):
+            obs.append(obs_elem)
+
+    lines = [line.split() for line in text2.split('\n\n') if line.split()]
+
+    for line in lines:
+        obs_elem = []
+
+        for word in line:
+            if word.isdigit():
+                continue
+            word = word.replace(')','').replace('(', '').replace('!', '').replace('?', '').replace(';', '').replace(',', '').replace(':', '').replace('.', '').lower()
+            if word not in obs_map:
+                # Add unique words to the observations map.
+                obs_map[word] = obs_counter
+                obs_counter += 1
+
+            # Add the encoded word.
+            obs_elem.append(obs_map[word])
+
+        # Add the encoded sequence.
+        if (len(obs_elem) > 0):
+            obs.append(obs_elem)
+            
     return obs, obs_map
 
 def obs_map_reverser(obs_map):
@@ -169,13 +219,13 @@ def animate_emission(hmm, obs_map, M=8, height=12, width=12, delay=1):
     arrow_p1 = 0.03
     arrow_p2 = 0.02
     arrow_p3 = 0.06
-    
+
     # Initialize.
     n_states = len(hmm.A)
     obs_map_r = obs_map_reverser(obs_map)
     wordclouds = states_to_wordclouds(hmm, obs_map, max_words=20, show=False)
 
-    # Initialize plot.    
+    # Initialize plot.
     fig, ax = plt.subplots()
     fig.set_figheight(height)
     fig.set_figwidth(width)
@@ -192,7 +242,7 @@ def animate_emission(hmm, obs_map, M=8, height=12, width=12, delay=1):
 
     # Initialize text.
     text = ax.text(text_x_offset, lim - text_y_offset, '', fontsize=24)
-        
+
     # Make the arrows.
     zorder_mult = n_states ** 2 * 100
     arrows = []
@@ -204,7 +254,7 @@ def animate_emission(hmm, obs_map, M=8, height=12, width=12, delay=1):
             y_i = y_offset + R * np.sin(np.pi * 2 * i / n_states)
             x_j = x_offset + R * np.cos(np.pi * 2 * j / n_states)
             y_j = y_offset + R * np.sin(np.pi * 2 * j / n_states)
-            
+
             dx = x_j - x_i
             dy = y_j - y_i
             d = np.sqrt(dx**2 + dy**2)
